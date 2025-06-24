@@ -211,9 +211,3 @@ networks:
         - subnet: 172.20.0.0/16
         - subnet: 2001:db8::/64
     enable_ipv6: true
-
-# commands:
-# Development: docker-compose up
-# Production: docker-compose --profile production up
-# Debug mode: docker-compose --profile debug up
-# Full stack: docker-compose --profile full-stack up 
