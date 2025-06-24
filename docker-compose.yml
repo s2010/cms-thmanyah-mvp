@@ -8,14 +8,21 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ./cms/.env
+      - env.dev
     environment:
-      - NODE_ENV=development
-      - DB_HOST=postgres
-      - REDIS_HOST=redis
-      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY:-}
-      - JWT_SECRET=${JWT_SECRET:-thmanyah-secret-key-change-in-production}
-      - CACHE_TTL=300
+      NODE_ENV: ${NODE_ENV:-development}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      CACHE_TTL: ${CACHE_TTL}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -42,16 +49,27 @@ services:
       context: ./discovery
       dockerfile: Dockerfile
     ports:
-      - "3001:3000"
+      - "${DISCOVERY_PORT:-3001}:3000"
     env_file:
-      - ./discovery/.env
+      - env.dev
     environment:
-      - NODE_ENV=development
-      - DISCOVERY_DB_HOST=postgres
-      - REDIS_HOST=redis
-      - PORT=3000
-      - DISCOVERY_CACHE_TTL=60
-      - API_RATE_LIMIT=1000
+      NODE_ENV: ${NODE_ENV:-development}
+      DISCOVERY_DB_HOST: ${DISCOVERY_DB_HOST}
+      DISCOVERY_DB_PORT: ${DISCOVERY_DB_PORT}
+      DISCOVERY_DB_USERNAME: ${DISCOVERY_DB_USERNAME}
+      DISCOVERY_DB_PASSWORD: ${DISCOVERY_DB_PASSWORD}
+      DISCOVERY_DB_NAME: ${DISCOVERY_DB_NAME}
+      DISCOVERY_DB_URL: ${DISCOVERY_DB_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+      PORT: 3000
+      DISCOVERY_CACHE_TTL: ${DISCOVERY_CACHE_TTL}
+      SEARCH_CACHE_TTL_SECONDS: ${SEARCH_CACHE_TTL_SECONDS}
+      API_RATE_LIMIT: ${API_RATE_LIMIT}
+      API_PREFIX: ${API_PREFIX}
+      MAX_PAGE_SIZE: ${MAX_PAGE_SIZE}
+      DEFAULT_PAGE_SIZE: ${DEFAULT_PAGE_SIZE}
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,9 +95,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: thmanyah_cms
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -159,8 +177,8 @@ services:
     ports:
       - "8080:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@thmanyah.com
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:

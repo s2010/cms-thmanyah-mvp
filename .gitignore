@@ -112,7 +112,7 @@ yarn.lock
 *.tmp
 *.temp
 *.bak
-*.backup
+*.backup 
 
 # CMS specific
 cms/uploads/

@@ -59,13 +59,13 @@ export class ContentService {
     
     this.businessRules.validateForUpdate(existing, dto);
     this.logger.debug(`Business rules passed, proceeding to repository update...`);
-    
-             try {
+
+    try {
       const updated = await this.contentRepository.update(id, dto);
         
       const action = this.determineCacheAction(existing, dto);
       await this.cacheInvalidation.publishContentUpdated(updated.id, action);
-        
+      
       this.logger.log(`Episode updated: "${updated.title}" (${id}) - ${action}`);
       return updated;
     } catch (error) {

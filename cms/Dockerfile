@@ -15,8 +15,11 @@ COPY nest-cli.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code
+# Copy source code and configuration
 COPY src/ ./src/
+COPY ormconfig.ts ./
+COPY ormconfig.js ./
+COPY scripts/ ./scripts/
 
 # Build the application
 RUN npm run build
@@ -43,6 +46,9 @@ RUN npm install --production && npm cache clean --force
 # Copy built application from builder stage
 COPY --from=builder --chown=thmanyah:nodejs /app/dist ./dist
 
+# Copy migration files
+COPY --from=builder --chown=thmanyah:nodejs /app/ormconfig.js ./ormconfig.js
+
 # Set default port (NODE_ENV will come from docker-compose)
 ENV PORT=3000
 
@@ -59,5 +65,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the application
-CMD ["node", "dist/main.js"] 
+# Start the application with migrations
+CMD ["sh", "-c", "npx typeorm migration:run -d ormconfig.js && exec node dist/main.js"] 

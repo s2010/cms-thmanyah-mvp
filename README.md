@@ -1,6 +1,6 @@
 # Thmanyah CMS
 
-Microservices architecture with admin CMS and public discovery API.
+Admin CMS and public discovery API built on Microservices architecture
 
 ## Services
 
@@ -14,48 +14,57 @@ Microservices architecture with admin CMS and public discovery API.
 ```bash
 git clone <repo>
 cd cms-thmanyah
-docker-compose up -d
+./setup-env.sh
+docker-compose up
 ```
 
-Configure environment:
-```bash
-# cms/.env
-DB_HOST=postgres
-DB_PASSWORD=password
-JWT_SECRET=your-key
-YOUTUBE_API_KEY=your-key
+## Environment Setup
 
-# discovery/.env  
-DISCOVERY_DB_HOST=postgres
-DB_PASSWORD=password
+```bash
+# Development
+./setup-env.sh
+
 ```
 
 ## API
 
-### Admin (CMS)
+### Admin (CMS - Port 3000)
 ```
-POST /auth/login
-GET  /cms/content
-POST /cms/content
-PUT  /cms/content/:id
-DELETE /cms/content/:id
+POST /auth/dev-token        # Get JWT token
+GET  /cms/content          # List episodes
+POST /cms/content          # Create episode
+PUT  /cms/content/:id      # Update episode
+DELETE /cms/content/:id    # Delete episode
+GET  /sync/youtube/status  # YouTube sync status
 ```
 
-### Public (Discovery)
+### Public (Discovery - Port 3001)
 ```
-GET /api/v1/content
-GET /api/v1/content/:id
-GET /api/v1/content/search
+GET /api/v1/content        # List published episodes
+GET /api/v1/content/:id    # Get episode details
+GET /api/v1/content/search # Search episodes
+GET /api/v1/health/live    # Health check
 ```
 
 ## Development
 
 ```bash
-# Each service
-npm install
-npm run start:dev
+# Individual services
+cd cms && npm run start:dev
+cd discovery && npm run start:dev
+
+# All services
+docker-compose up
+
+# With debugging tools
+docker-compose --profile debug up
 ```
 
-## YouTube Sync
+## Features
 
-Auto-syncs configured channel hourly. Set `YOUTUBE_API_KEY` and `YOUTUBE_CHANNEL_HANDLE`.
+- JWT authentication
+- Arabic content support with RTL metadata
+- Redis cache invalidation between services
+- YouTube API integration
+- TypeORM migrations
+- Health checks and monitoring
