@@ -21,6 +21,9 @@ lerna-debug.log*
 .env.production.local
 .env.staging
 .env.backup
+env.dev
+env.prod
+
 
 # Local Data Files
 uploads/
