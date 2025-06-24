@@ -1,0 +1,96 @@
+{
+  "name": "@thmanyah/cms-admin",
+  "version": "1.0.0",
+  "description": "Thmanyah CMS Admin Service - Content management and database writes",
+  "author": "Thmanyah Engineering Team",
+  "private": true,
+  "license": "MIT",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "npm run build || true"
+  },
+  "dependencies": {
+    "@nestjs/cache-manager": "^2.1.0",
+    "@nestjs/cli": "^11.0.7",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.1.1",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/jwt": "^10.1.0",
+    "@nestjs/mapped-types": "^2.0.2",
+    "@nestjs/microservices": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/schedule": "^3.0.0",
+    "@nestjs/typeorm": "^10.0.0",
+    "bcrypt": "^5.1.0",
+    "cache-manager": "^5.2.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "googleapis": "^126.0.1",
+    "ioredis": "^5.3.2",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.11.0",
+    "redis": "^4.6.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.17"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.2",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^20.3.1",
+    "@types/pg": "^8.10.2",
+    "@types/supertest": "^2.0.12",
+    "jest": "^29.5.0",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "moduleNameMapping": {
+      "^@cms/(.*)$": "<rootDir>/$1",
+      "^@shared/(.*)$": "<rootDir>/../../shared/$1"
+    }
+  },
+  "keywords": [
+    "thmanyah",
+    "cms",
+    "admin",
+    "nestjs",
+    "content-management",
+    "podcasting"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thmanyah/cms-platform.git",
+    "directory": "cms"
+  }
+}

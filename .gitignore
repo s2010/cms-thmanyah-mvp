@@ -1,0 +1,125 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnp/
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Environment Variables (sensitive data)
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging
+.env.backup
+
+# Local Data Files
+uploads/
+files/
+temp/
+tmp/
+logs/
+backups/
+backup-*.sql
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+data/
+storage/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+typings/
+/dist
+/build
+# Logs
+*.log
+logs/
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Runtime and cache
+.eslintcache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+.turbo/
+jest.cache/
+uploads/
+backups/
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Docker
+.docker/
+docker-volumes/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+ssl/
+
+# Package managers
+package-lock.json
+yarn.lock
+.yarn-integrity
+.npm
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# CMS specific
+cms/uploads/
+cms/logs/
+discovery/logs/
+cms/.env*
+discovery/.env*
+.prettierrc
+.eslintrc.js
+.gitignore

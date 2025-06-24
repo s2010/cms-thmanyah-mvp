@@ -1,0 +1,201 @@
+services:
+  # CMS Admin Service - Content management and database writes
+  cms:
+    container_name: thmanyah-cms-admin
+    build: 
+      context: ./cms
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./cms/.env
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY:-}
+      - JWT_SECRET=${JWT_SECRET:-thmanyah-secret-key-change-in-production}
+      - CACHE_TTL=300
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - thmanyah-network
+    volumes:
+      - cms_logs:/app/logs
+      - ./cms/src:/app/src:cached
+      - ./cms/uploads:/app/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Discovery Service - Public read-only content API
+  discovery:
+    container_name: thmanyah-discovery-api
+    build:
+      context: ./discovery
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./discovery/.env
+    environment:
+      - NODE_ENV=development
+      - DISCOVERY_DB_HOST=postgres
+      - REDIS_HOST=redis
+      - PORT=3000
+      - DISCOVERY_CACHE_TTL=60
+      - API_RATE_LIMIT=1000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - thmanyah-network
+    volumes:
+      - discovery_logs:/app/logs
+      - ./discovery/src:/app/src:cached
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/v1/health/live', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL Database - Primary data store
+  postgres:
+    container_name: thmanyah-postgres-db
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: thmanyah_cms
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./cms/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./backups:/backups
+    networks:
+      - thmanyah-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d thmanyah_cms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis - Caching layer and inter-service pub/sub
+  redis:
+    container_name: thmanyah-redis-cache
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru --save 60 1000
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - thmanyah-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Nginx Reverse Proxy (for production-like routing)
+  nginx:
+    container_name: thmanyah-nginx-proxy
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - cms
+      - discovery
+    networks:
+      - thmanyah-network
+    restart: unless-stopped
+    profiles:
+      - production
+      - full-stack
+
+  # Redis Commander - Redis management UI (development only)
+  redis-commander:
+    container_name: thmanyah-redis-ui
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=redis:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - thmanyah-network
+    profiles:
+      - development
+      - debug
+
+  # pgAdmin - PostgreSQL management UI (development only)
+  pgadmin:
+    container_name: thmanyah-pgadmin
+    image: dpage/pgadmin4:latest
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@thmanyah.com
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - thmanyah-network
+    profiles:
+      - development
+      - debug
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  cms_logs:
+    driver: local
+  discovery_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  thmanyah-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+        - subnet: 2001:db8::/64
+    enable_ipv6: true
+
+# commands:
+# Development: docker-compose up
+# Production: docker-compose --profile production up
+# Debug mode: docker-compose --profile debug up
+# Full stack: docker-compose --profile full-stack up 

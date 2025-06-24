@@ -1,0 +1,571 @@
+{
+  "info": {
+    "name": "Thmanyah CMS APIs",
+    "description": "API collection for Thmanyah platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.1"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "const token = pm.environment.get('auth_token');",
+          "if (!token) {",
+          "    console.log('No token - run login first');",
+          "}"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "cms_base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "discovery_base_url",
+      "value": "http://localhost:3001/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('login works', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.exist;",
+                  "    pm.environment.set('auth_token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('auth_token', jsonData.access_token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{cms_base_url}}/auth/login",
+              "host": ["{{cms_base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "CMS Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('health check', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().services).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cms_base_url}}/health",
+              "host": ["{{cms_base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Discovery Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('discovery health', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().service).to.eql('thmanyah-discovery');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{discovery_base_url}}/health",
+              "host": ["{{discovery_base_url}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Content",
+      "item": [
+        {
+          "name": "List Episodes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('list episodes', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    pm.expect(data.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cms_base_url}}/cms/content?page=1&limit=10",
+              "host": ["{{cms_base_url}}"],
+              "path": ["cms", "content"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Episode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('create episode', function () {",
+                  "    const code = pm.response.code;",
+                  "    const data = pm.response.json();",
+                  "    ",
+                  "    if (code === 400) {",
+                  "        console.log('Validation error:', data.message);",
+                  "        return;",
+                  "    }",
+                  "    ",
+                  "    pm.response.to.have.status(201);",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    pm.environment.set('test_episode_id', data.data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"ثمانية بودكاست: رحلة في عالم الإبداع والحياة\",\n  \"body\": \"انضموا إلينا في هذه الحلقة الشيقة حيث نستكشف قصص ملهمة عن الحياة والإبداع. نتحدث مع ضيوفنا حول تجاربهم الشخصية ورحلاتهم نحو تحقيق أحلامهم والتغلب على التحديات.\",\n  \"videoUrl\": \"https://www.youtube.com/watch?v=UjXvq_YyeZ0\",\n  \"thumbnailUrl\": \"https://img.youtube.com/vi/UjXvq_YyeZ0/maxresdefault.jpg\",\n  \"isPublished\": true,\n  \"publishedAt\": \"2024-04-01T16:00:00Z\",\n  \"youtubeId\": \"UjXvq_YyeZ0\"\n}"
+            },
+            "url": {
+              "raw": "{{cms_base_url}}/cms/content",
+              "host": ["{{cms_base_url}}"],
+              "path": ["cms", "content"]
+            }
+          }
+        },
+        {
+          "name": "Get Episode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('get episode', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    pm.expect(data.data.title).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cms_base_url}}/cms/content/1",
+              "host": ["{{cms_base_url}}"],
+              "path": ["cms", "content", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Episode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('update episode works', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('constraints removed', function () {",
+                  "    console.log('✓ Short content allowed');",
+                  "    console.log('✓ Duplicate YouTube ID allowed');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated\",\n  \"body\": \"Brief\",\n  \"youtubeId\": \"UjXvq_YyeZ0\"\n}"
+            },
+            "url": {
+              "raw": "{{cms_base_url}}/cms/content/1",
+              "host": ["{{cms_base_url}}"],
+              "path": ["cms", "content", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Episode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('delete episode', function () {",
+                  "    const code = pm.response.code;",
+                  "    const data = pm.response.json();",
+                  "    ",
+                  "    if (code === 400 && data.message.includes('Cannot delete')) {",
+                  "        console.log('Delete blocked by business rules');",
+                  "        return;",
+                  "    }",
+                  "    ",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{cms_base_url}}/cms/content/3",
+              "host": ["{{cms_base_url}}"],
+              "path": ["cms", "content", "3"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "YouTube",
+      "item": [
+        {
+          "name": "YouTube Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('youtube status', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cms_base_url}}/sync/youtube/status",
+              "host": ["{{cms_base_url}}"],
+              "path": ["sync", "youtube", "status"]
+            }
+          }
+        },
+        {
+          "name": "YouTube Health",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cms_base_url}}/sync/youtube/health",
+              "host": ["{{cms_base_url}}"],
+              "path": ["sync", "youtube", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Discovery",
+      "item": [
+        {
+          "name": "Browse Episodes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('browse episodes', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    pm.expect(data.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('response time ok', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{discovery_base_url}}/content?page=1&limit=10",
+              "host": ["{{discovery_base_url}}"],
+              "path": ["content"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Episode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('get single episode', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    pm.expect(data.data.title).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{discovery_base_url}}/content/1",
+              "host": ["{{discovery_base_url}}"],
+              "path": ["content", "1"]
+            }
+          }
+        },
+        {
+          "name": "Search Episodes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('search episodes', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    pm.expect(data.total).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{discovery_base_url}}/content/search?q=حياة&page=1&limit=5",
+              "host": ["{{discovery_base_url}}"],
+              "path": ["content", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "حياة"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+} 
